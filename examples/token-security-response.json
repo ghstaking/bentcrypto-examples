@@ -1,0 +1,22 @@
+{
+  "success": true,
+  "chain": "solana",
+  "address": "So11111111111111111111111111111111111111112",
+  "security": {
+    "score": 0,
+    "level": "LOW",
+    "honeypot_status": "UNKNOWN"
+  },
+  "confidence": {
+    "coverage_percent": 75
+  },
+  "token_program": {
+    "token_program": "spl-token",
+    "extension_types": []
+  },
+  "metadata": {
+    "release_stage": "beta",
+    "exit_validation_performed": false,
+    "analysis_scope": "on_chain_token_controls"
+  }
+}
