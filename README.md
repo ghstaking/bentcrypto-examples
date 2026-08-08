@@ -55,9 +55,40 @@ node ./javascript/token-security.js
 
 The examples refuse to pay unless the challenge matches BentCrypto's expected Solana mainnet network, USDC mint, $0.01 amount, and receiver.
 
+## Python: make a paid request
+
+Python 3.11+ recommended.
+
+```bash
+python -m venv .venv
+# Windows: .\.venv\Scripts\activate
+# macOS/Linux: source .venv/bin/activate
+pip install -r requirements.txt
+```
+
+PowerShell:
+
+```powershell
+$env:SVM_PRIVATE_KEY = "<64-byte-base58-solana-secret-key>"
+$env:CONFIRM_X402_PAYMENT = "YES"
+python .\python\token_risk.py
+```
+
+Token Security:
+
+```powershell
+python .\python\token_security.py
+```
+
+The Python examples use the official x402 Python SVM client and perform the same unpaid preflight checks before authorizing a real $0.01 request.
+
 ## Response examples
 
-Sanitized beta examples are under [`examples/`](./examples).
+Sanitized beta examples are under [`examples/`](./examples):
+
+- [`token-risk-response.json`](./examples/token-risk-response.json)
+- [`token-security-response.json`](./examples/token-security-response.json)
+- [`payment-required.json`](./examples/payment-required.json)
 
 ## Important Token Security limitation
 
@@ -71,10 +102,15 @@ The current public Token Security beta evaluates on-chain token-control evidence
 - Token Security: https://bentcrypto.com/apis/token-security
 - OpenAPI: https://bentcrypto.com/openapi.json
 - Machine-readable manifest: https://bentcrypto.com/agent-api.json
+- Quickstart: [`docs/QUICKSTART.md`](./docs/QUICKSTART.md)
+- x402 notes: [`docs/X402.md`](./docs/X402.md)
+- Official x402 buyer quickstart: https://docs.x402.org/getting-started/quickstart-for-buyers
 
 ## Security
 
 BentCrypto never needs your private key or seed phrase. x402 payment signing happens inside the buyer's own client. Use a dedicated payment wallet with limited funds and never commit wallet material to source control.
+
+This repository ignores `.env`, virtual environments, private-key file extensions, and common local build artifacts.
 
 ## Beta notice
 
