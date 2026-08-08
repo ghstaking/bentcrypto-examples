@@ -1,0 +1,15 @@
+{
+  "success": true,
+  "chain": "solana",
+  "address": "So11111111111111111111111111111111111111112",
+  "risk": {
+    "score": 1,
+    "level": "low"
+  },
+  "confidence": {
+    "coverage_percent": 100
+  },
+  "metadata": {
+    "release_stage": "beta"
+  }
+}
