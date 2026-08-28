@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import http from "node:http";
 import { once } from "node:events";
+import { fileURLToPath } from "node:url";
 import test from "node:test";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js";
@@ -68,7 +69,9 @@ test("stdio MCP host can discover, preview 402, and preserves payment-off safety
   t.after(() => mock.close());
 
   const origin = `http://127.0.0.1:${mock.address().port}`;
-  const serverPath = new URL("../server.mjs", import.meta.url).pathname;
+  // fileURLToPath is required here: URL.pathname yields /C:/... on Windows,
+  // which Node can reinterpret as C:\\C:\\... when passed to a subprocess.
+  const serverPath = fileURLToPath(new URL("../server.mjs", import.meta.url));
   const transport = new StdioClientTransport({
     command: process.execPath,
     args: [serverPath],
