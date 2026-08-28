@@ -1,6 +1,6 @@
 {
   "name": "bentcrypto-mcp",
-  "version": "0.2.0",
+  "version": "0.1.0",
   "mcpName": "io.github.ghstaking/bentcrypto-mcp",
   "type": "module",
   "description": "Local MCP bridge for BentCrypto x402 Token Risk on Solana and Base plus Token Security on Solana",
