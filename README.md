@@ -1,29 +1,48 @@
 # BentCrypto Examples
 
-**Solana pre-trade intelligence for AI agents — $0.01 USDC per request via x402.**
+**x402 token intelligence for AI agents — Token Risk on Solana + Base and Token Security on Solana. $0.01 USDC per authorized request.**
 
-BentCrypto exposes machine-readable token intelligence over HTTP with no API keys, accounts, or subscriptions. A client requests a resource, receives an HTTP `402 Payment Required` challenge, authorizes the x402 payment locally, and retries the request with payment proof.
+BentCrypto exposes machine-readable token intelligence over HTTP with no account, subscription, or traditional API key required for the paid call itself. A client requests a resource, receives an HTTP `402 Payment Required` challenge, authorizes the x402 payment locally, and retries the request with payment proof.
 
 ## Live APIs
 
-| API | Endpoint | Price | Status |
-| --- | --- | ---: | --- |
-| Token Risk | `GET https://api.bentcrypto.com/v1/token/risk` | $0.01 USDC | Limited beta |
-| Token Security | `GET https://api.bentcrypto.com/v1/token/security` | $0.01 USDC | Limited beta |
+| API | Endpoint | Analysis chains | Price | Status |
+| --- | --- | --- | ---: | --- |
+| Token Risk | `GET https://api.bentcrypto.com/v1/token/risk` | Solana + Base | $0.01 USDC | Limited beta |
+| Token Security | `GET https://api.bentcrypto.com/v1/token/security` | Solana only | $0.01 USDC | Limited beta |
 
-Both currently support Solana mainnet. `chain=solana` is optional; `address=<SOLANA_MINT>` is required.
+For Token Risk, pass `chain=solana` with a Solana mint or `chain=base` with an EVM contract address. Token Security intentionally rejects Base.
+
+## MCP bridge
+
+The [`mcp/`](./mcp) folder contains a local stdio MCP bridge for MCP-capable agents and desktop clients. It exposes:
+
+- free BentCrypto discovery;
+- an unpaid Token Risk payment-preview tool;
+- paid `token_risk` for Solana or Base;
+- paid `token_security` for Solana.
+
+Payments are disabled by default. When explicitly enabled, the bridge signs locally, validates approved mainnet USDC assets, and enforces a configurable per-call spend cap that defaults to $0.01. See [`mcp/README.md`](./mcp/README.md).
 
 ## Quick start: inspect the x402 challenge without paying
+
+Solana:
 
 ```bash
 curl -i "https://api.bentcrypto.com/v1/token/risk?chain=solana&address=So11111111111111111111111111111111111111112"
 ```
 
-Expected result: HTTP `402` with the x402 v2 payment requirement in the `payment-required` response header. No payment is made by this command.
+Base:
 
-## JavaScript: make a paid request
+```bash
+curl -i "https://api.bentcrypto.com/v1/token/risk?chain=base&address=0x4200000000000000000000000000000000000006"
+```
 
-Requirements: Node.js 20+ and a dedicated Solana wallet funded with mainnet USDC.
+Expected result: HTTP `402` with the authoritative x402 v2 payment requirement in the `payment-required` response header. No payment is made by either command.
+
+## JavaScript: make a paid Solana request
+
+The root JavaScript examples currently demonstrate the Solana payment path. Requirements: Node.js 20+ and a dedicated Solana wallet funded with mainnet USDC.
 
 ```bash
 npm install
@@ -53,9 +72,9 @@ Token Security:
 node ./javascript/token-security.js
 ```
 
-The examples refuse to pay unless the challenge matches BentCrypto's expected Solana mainnet network, USDC mint, $0.01 amount, and receiver.
+The examples refuse to pay unless the challenge matches BentCrypto's expected Solana mainnet network, USDC mint, $0.01 amount, and receiver. For an MCP integration that can register both Base and Solana payment wallets, use [`mcp/`](./mcp).
 
-## Python: make a paid request
+## Python: make a paid Solana request
 
 Python 3.11+ recommended.
 
@@ -92,7 +111,16 @@ Sanitized beta examples are under [`examples/`](./examples):
 
 ## Important Token Security limitation
 
-The current public Token Security beta evaluates on-chain token-control evidence. Exit validation is not enabled, so `metadata.exit_validation_performed` is `false` and `security.honeypot_status` remains `UNKNOWN`. It does **not** certify that a token is safe to trade.
+The current public Token Security beta evaluates on-chain token-control evidence. Exit validation is not enabled, so `metadata.exit_validation_performed` is `false` and `security.honeypot_status` remains `UNKNOWN`. It does **not** certify that a token is safe to trade. Token Security is Solana-only.
+
+## Machine-readable discovery
+
+- x402: https://api.bentcrypto.com/.well-known/x402
+- OpenAPI: https://api.bentcrypto.com/openapi.json
+- Agent manifest: https://api.bentcrypto.com/agents.json
+- LLM summary: https://api.bentcrypto.com/llms.txt
+- Agent skill: https://api.bentcrypto.com/skill.md
+- Pricing: https://api.bentcrypto.com/pricing
 
 ## Documentation
 
@@ -100,8 +128,6 @@ The current public Token Security beta evaluates on-chain token-control evidence
 - API docs: https://bentcrypto.com/docs
 - Token Risk: https://bentcrypto.com/apis/token-risk
 - Token Security: https://bentcrypto.com/apis/token-security
-- OpenAPI: https://bentcrypto.com/openapi.json
-- Machine-readable manifest: https://bentcrypto.com/agent-api.json
 - Quickstart: [`docs/QUICKSTART.md`](./docs/QUICKSTART.md)
 - x402 notes: [`docs/X402.md`](./docs/X402.md)
 - Official x402 buyer quickstart: https://docs.x402.org/getting-started/quickstart-for-buyers

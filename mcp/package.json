@@ -1,0 +1,25 @@
+{
+  "name": "@bentcrypto/mcp-server",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Local MCP bridge for BentCrypto x402 Token Risk and Token Security APIs",
+  "engines": { "node": ">=20" },
+  "bin": { "bentcrypto-mcp": "./server.mjs" },
+  "scripts": {
+    "start": "node server.mjs",
+    "check": "node --check server.mjs && node --check lib.mjs",
+    "test": "node --test tests/*.test.mjs"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "1.30.0",
+    "@scure/base": "2.0.0",
+    "@solana/kit": "5.2.0",
+    "@x402/core": "2.23.0",
+    "@x402/evm": "2.23.0",
+    "@x402/fetch": "2.23.0",
+    "@x402/svm": "2.23.0",
+    "viem": "2.56.0",
+    "zod": "3.25.76"
+  }
+}

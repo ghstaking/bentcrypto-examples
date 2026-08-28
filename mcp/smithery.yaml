@@ -1,0 +1,37 @@
+startCommand:
+  type: stdio
+  configSchema:
+    type: object
+    required: [allowPayments]
+    properties:
+      allowPayments:
+        type: string
+        title: Enable x402 payments
+        description: "Set to YES only after reviewing the $0.01-per-call spend policy."
+        default: "NO"
+      maxUsdcPerCall:
+        type: string
+        title: Maximum USDC per call
+        default: "0.01"
+      evmPrivateKey:
+        type: string
+        title: Base payment wallet private key
+      svmPrivateKey:
+        type: string
+        title: Solana payment wallet private key
+      preferredPaymentNetwork:
+        type: string
+        title: Preferred payment network
+        description: "Optional: eip155:8453 or the Solana mainnet CAIP-2 identifier."
+  commandFunction: |-
+    (config) => ({
+      command: "node",
+      args: ["server.mjs"],
+      env: {
+        BENTCRYPTO_ALLOW_PAYMENTS: config.allowPayments || "NO",
+        BENTCRYPTO_MAX_USDC_PER_CALL: config.maxUsdcPerCall || "0.01",
+        ...(config.evmPrivateKey ? { EVM_PRIVATE_KEY: config.evmPrivateKey } : {}),
+        ...(config.svmPrivateKey ? { SVM_PRIVATE_KEY: config.svmPrivateKey } : {}),
+        ...(config.preferredPaymentNetwork ? { BENTCRYPTO_PREFERRED_PAYMENT_NETWORK: config.preferredPaymentNetwork } : {})
+      }
+    })
