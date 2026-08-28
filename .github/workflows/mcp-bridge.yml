@@ -29,3 +29,10 @@ jobs:
       - run: npm run check
       - run: npm test
       - run: npm audit --omit=dev --audit-level=high
+      - name: Verify npm package contents
+        run: npm run pack:check
+      - name: Install MCP Registry publisher validator
+        run: |
+          curl -L "https://github.com/modelcontextprotocol/registry/releases/latest/download/mcp-publisher_$(uname -s | tr '[:upper:]' '[:lower:]')_$(uname -m | sed 's/x86_64/amd64/;s/aarch64/arm64/').tar.gz" | tar xz mcp-publisher
+      - name: Validate official MCP Registry metadata
+        run: ./mcp-publisher validate server.json
