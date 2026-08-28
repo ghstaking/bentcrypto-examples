@@ -2,9 +2,23 @@
 
 BentCrypto runs as a local stdio MCP server. Hermes Agent reads MCP servers from `~/.hermes/config.yaml` under `mcp_servers` and automatically registers discovered tools with an `mcp_<server>_...` prefix.
 
+## Windows helper — recommended
+
+The repository includes a safe setup helper that clones/updates the public BentCrypto examples, installs the MCP dependencies, runs the MCP tests, and writes a **discovery-only** Hermes YAML snippet. It deliberately does not edit your Hermes config, store wallet keys, enable payments, or make a paid call.
+
+From PowerShell:
+
+```powershell
+Set-ExecutionPolicy -Scope Process Bypass
+irm https://raw.githubusercontent.com/ghstaking/bentcrypto-examples/main/mcp/install-hermes-windows.ps1 -OutFile "$env:TEMP\install-bentcrypto-mcp.ps1"
+& "$env:TEMP\install-bentcrypto-mcp.ps1"
+```
+
+Review the generated `hermes-bentcrypto-snippet.yaml`, merge it into `~/.hermes/config.yaml`, then restart Hermes or run `/reload-mcp`.
+
 ## Safe first test — discovery only
 
-Keep payments disabled for the first connection. Clone `ghstaking/bentcrypto-examples`, install the MCP package dependencies, and point Hermes at the local server file.
+Keep payments disabled for the first connection. If you prefer manual setup, clone `ghstaking/bentcrypto-examples`, install the MCP package dependencies, and point Hermes at the local server file.
 
 PowerShell example:
 
