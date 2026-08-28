@@ -1,15 +1,47 @@
 {
-  "name": "@bentcrypto/mcp-server",
-  "version": "0.1.0",
-  "private": true,
+  "name": "bentcrypto-mcp",
+  "version": "0.2.0",
+  "mcpName": "io.github.ghstaking/bentcrypto-mcp",
   "type": "module",
-  "description": "Local MCP bridge for BentCrypto x402 Token Risk and Token Security APIs",
+  "description": "Local MCP bridge for BentCrypto x402 Token Risk on Solana and Base plus Token Security on Solana",
+  "license": "MIT",
+  "author": "BentCrypto",
+  "homepage": "https://bentcrypto.com/agent-api",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ghstaking/bentcrypto-examples.git",
+    "directory": "mcp"
+  },
+  "bugs": {
+    "url": "https://github.com/ghstaking/bentcrypto-examples/issues"
+  },
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "x402",
+    "crypto",
+    "token-risk",
+    "solana",
+    "base",
+    "ai-agents"
+  ],
   "engines": { "node": ">=20" },
   "bin": { "bentcrypto-mcp": "./server.mjs" },
+  "files": [
+    "server.mjs",
+    "lib.mjs",
+    "README.md",
+    "LICENSE"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
     "start": "node server.mjs",
     "check": "node --check server.mjs && node --check lib.mjs",
-    "test": "node --test tests/*.test.mjs"
+    "test": "node --test tests/*.test.mjs",
+    "pack:check": "npm pack --dry-run",
+    "prepublishOnly": "npm run check && npm test"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "1.30.0",
