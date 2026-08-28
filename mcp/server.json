@@ -1,23 +1,54 @@
 {
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
   "name": "io.github.ghstaking/bentcrypto-mcp",
-  "description": "MCP bridge for BentCrypto x402 Token Risk on Solana/Base and Token Security on Solana, with local wallet signing and spend controls.",
+  "title": "BentCrypto x402 Token Intelligence",
+  "description": "BentCrypto MCP bridge for x402 Token Risk on Solana/Base and Token Security on Solana.",
   "version": "0.1.0",
   "repository": {
     "url": "https://github.com/ghstaking/bentcrypto-examples",
     "source": "github",
-    "id": "1327263651"
+    "id": "1327263651",
+    "subfolder": "mcp"
   },
-  "tools": [
-    { "name": "discover_bentcrypto", "description": "Free discovery of BentCrypto x402 capabilities and pricing." },
-    { "name": "preview_token_risk_payment", "description": "Preview the live Token Risk 402 challenge without paying." },
-    { "name": "token_risk", "description": "Paid $0.01 USDC Token Risk analysis for Solana or Base." },
-    { "name": "token_security", "description": "Paid $0.01 USDC Solana Token Security analysis." }
-  ],
-  "environment": [
-    { "name": "BENTCRYPTO_ALLOW_PAYMENTS", "description": "Must equal YES before paid tools may sign", "isRequired": true, "isSecret": false },
-    { "name": "BENTCRYPTO_MAX_USDC_PER_CALL", "description": "Local payment cap; defaults to 0.01", "isRequired": false, "isSecret": false },
-    { "name": "EVM_PRIVATE_KEY", "description": "Dedicated Base payment wallet private key", "isRequired": false, "isSecret": true },
-    { "name": "SVM_PRIVATE_KEY", "description": "Dedicated Solana payment wallet private key", "isRequired": false, "isSecret": true }
+  "packages": [
+    {
+      "registryType": "npm",
+      "registryBaseUrl": "https://registry.npmjs.org",
+      "identifier": "bentcrypto-mcp",
+      "version": "0.1.0",
+      "transport": {
+        "type": "stdio"
+      },
+      "environmentVariables": [
+        {
+          "name": "BENTCRYPTO_ALLOW_PAYMENTS",
+          "description": "Set to YES only after reviewing the live x402 challenge and funding a dedicated payment wallet.",
+          "isRequired": false,
+          "format": "string",
+          "isSecret": false
+        },
+        {
+          "name": "BENTCRYPTO_MAX_USDC_PER_CALL",
+          "description": "Local maximum USDC spend per call; the bridge defaults to 0.01.",
+          "isRequired": false,
+          "format": "string",
+          "isSecret": false
+        },
+        {
+          "name": "EVM_PRIVATE_KEY",
+          "description": "Dedicated Base payment wallet private key. Keep only in the MCP host environment.",
+          "isRequired": false,
+          "format": "string",
+          "isSecret": true
+        },
+        {
+          "name": "SVM_PRIVATE_KEY",
+          "description": "Dedicated Solana payment wallet private key. Keep only in the MCP host environment.",
+          "isRequired": false,
+          "format": "string",
+          "isSecret": true
+        }
+      ]
+    }
   ]
 }
