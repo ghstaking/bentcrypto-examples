@@ -32,7 +32,18 @@ jobs:
       - name: Verify npm package contents
         run: npm run pack:check
       - name: Validate MCPB manifest for current Smithery stdio distribution
-        run: npx --yes @anthropic-ai/mcpb@2.1.2 validate manifest.json
+        run: npm run mcpb:validate
+      - name: Build MCPB distribution bundle
+        run: |
+          npx --yes @anthropic-ai/mcpb@2.1.2 pack . ../bentcrypto-mcp-0.1.0.mcpb
+          npx --yes @anthropic-ai/mcpb@2.1.2 info ../bentcrypto-mcp-0.1.0.mcpb
+          ls -lh ../bentcrypto-mcp-0.1.0.mcpb
+      - name: Upload MCPB distribution artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: bentcrypto-mcp-mcpb
+          path: bentcrypto-mcp-0.1.0.mcpb
+          if-no-files-found: error
       - name: Install MCP Registry publisher validator
         run: |
           curl -L "https://github.com/modelcontextprotocol/registry/releases/latest/download/mcp-publisher_$(uname -s | tr '[:upper:]' '[:lower:]')_$(uname -m | sed 's/x86_64/amd64/;s/aarch64/arm64/').tar.gz" | tar xz mcp-publisher
