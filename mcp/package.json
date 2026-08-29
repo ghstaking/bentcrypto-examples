@@ -41,6 +41,7 @@
     "check": "node --check server.mjs && node --check lib.mjs",
     "test": "node --test tests/*.test.mjs",
     "pack:check": "npm pack --dry-run",
+    "mcpb:validate": "npx --yes @anthropic-ai/mcpb@2.1.2 validate manifest.json",
     "prepublishOnly": "npm run check && npm test"
   },
   "dependencies": {

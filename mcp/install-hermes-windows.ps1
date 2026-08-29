@@ -1,6 +1,8 @@
 [CmdletBinding()]
 param(
-  [string]$InstallRoot = (Join-Path $env:LOCALAPPDATA "BentCrypto")
+  [string]$InstallRoot = (Join-Path $env:LOCALAPPDATA "BentCrypto"),
+  [switch]$RegisterWithHermes,
+  [string]$HermesProfile = ""
 )
 
 $ErrorActionPreference = "Stop"
@@ -9,7 +11,8 @@ $repoDir = Join-Path $InstallRoot "bentcrypto-examples"
 $mcpDir = Join-Path $repoDir "mcp"
 $serverPath = Join-Path $mcpDir "server.mjs"
 $snippetPath = Join-Path $mcpDir "hermes-bentcrypto-snippet.yaml"
-$hermesConfig = Join-Path $HOME ".hermes\config.yaml"
+$hermesRoot = Join-Path $HOME ".hermes"
+$activeProfilePath = Join-Path $hermesRoot "active_profile"
 
 function Require-Command([string]$Name) {
   $cmd = Get-Command $Name -ErrorAction SilentlyContinue
@@ -19,14 +22,40 @@ function Require-Command([string]$Name) {
   return $cmd.Source
 }
 
+function Get-HermesTargetDescription {
+  if ($HermesProfile) {
+    return "Hermes profile '$HermesProfile'"
+  }
+  if (Test-Path $activeProfilePath) {
+    try {
+      $active = (Get-Content $activeProfilePath -Raw -ErrorAction Stop).Trim()
+      if ($active -and $active -ne "default") {
+        return "active Hermes profile '$active'"
+      }
+    } catch {}
+  }
+  return "Hermes default/active profile"
+}
+
+function Get-HermesPrefixArgs {
+  if ($HermesProfile) {
+    return @("-p", $HermesProfile)
+  }
+  return @()
+}
+
 Write-Host "BentCrypto MCP -> Hermes Agent setup" -ForegroundColor Cyan
-Write-Host "This helper installs the public MCP bridge locally and creates a safe discovery-only Hermes config snippet."
-Write-Host "It does NOT modify Hermes config, store wallet keys, enable payments, or make a paid API call."
+Write-Host "This helper installs and validates the public BentCrypto MCP bridge locally."
+Write-Host "By default it does NOT modify Hermes config, store wallet keys, enable payments, or make a paid API call."
+Write-Host "Use -RegisterWithHermes only when you explicitly want Hermes CLI to add the server to its active/profile-scoped config."
 Write-Host ""
 
 $git = Require-Command "git"
 $node = Require-Command "node"
 $npm = Require-Command "npm"
+$hermesCmd = Get-Command "hermes" -ErrorAction SilentlyContinue
+$hermes = $null
+if ($hermesCmd) { $hermes = $hermesCmd.Source }
 
 $nodeVersionText = (& $node --version).Trim().TrimStart("v")
 $nodeMajor = [int]($nodeVersionText.Split(".")[0])
@@ -68,8 +97,8 @@ try {
 
 $yamlServerPath = $serverPath.Replace("\", "/").Replace('"', '\"')
 $snippet = @"
-# Merge this block into ~/.hermes/config.yaml.
-# If your config already has an mcp_servers: section, add only the indented bentcrypto: entry under it.
+# Manual fallback only. Prefer `hermes mcp add` so Hermes writes to the active profile.
+# If a named Hermes profile is active, its config may live under ~/.hermes/profiles/<profile>/config.yaml.
 mcp_servers:
   bentcrypto:
     command: "node"
@@ -87,13 +116,55 @@ Set-Content -Path $snippetPath -Value $snippet -Encoding UTF8
 Write-Host ""
 Write-Host "PASS BentCrypto MCP installed and validated." -ForegroundColor Green
 Write-Host "Server: $serverPath"
-Write-Host "Hermes config: $hermesConfig"
-Write-Host "Safe config snippet: $snippetPath"
+Write-Host "Manual fallback snippet: $snippetPath"
+Write-Host "Hermes target: $(Get-HermesTargetDescription)"
 Write-Host ""
-Write-Host "Next:" -ForegroundColor Cyan
-Write-Host "1. Open $snippetPath"
-Write-Host "2. Merge it into $hermesConfig"
-Write-Host "3. Restart Hermes or run /reload-mcp"
-Write-Host "4. Ask Hermes: Tell me which BentCrypto MCP tools are available, then use the free discovery tool. Do not make a payment."
+
+if ($RegisterWithHermes) {
+  if (-not $hermes) {
+    throw "Hermes CLI was not found in PATH. The MCP bridge is installed, but automatic Hermes registration cannot continue."
+  }
+
+  $prefixArgs = Get-HermesPrefixArgs
+  Write-Host "Registering BentCrypto through Hermes CLI..." -ForegroundColor Cyan
+  & $hermes @prefixArgs mcp add bentcrypto --command node --args $serverPath
+  if ($LASTEXITCODE -ne 0) {
+    throw "Hermes MCP registration failed. No payment was attempted."
+  }
+
+  Write-Host "Testing the registered MCP server..."
+  & $hermes @prefixArgs mcp test bentcrypto
+  if ($LASTEXITCODE -ne 0) {
+    throw "Hermes registered the server but the MCP connection test failed."
+  }
+
+  Write-Host ""
+  Write-Host "PASS BentCrypto is registered with $(Get-HermesTargetDescription)." -ForegroundColor Green
+  if ($HermesProfile) {
+    Write-Host "Run 'hermes -p $HermesProfile mcp configure bentcrypto' and expose only:" -ForegroundColor Cyan
+  } else {
+    Write-Host "Run 'hermes mcp configure bentcrypto' and expose only:" -ForegroundColor Cyan
+  }
+  Write-Host "  discover_bentcrypto"
+  Write-Host "  preview_token_risk_payment"
+} else {
+  if ($hermes) {
+    if ($HermesProfile) {
+      Write-Host "Recommended profile-safe registration command:" -ForegroundColor Cyan
+      Write-Host "hermes -p $HermesProfile mcp add bentcrypto --command node --args `"$serverPath`""
+      Write-Host "Then: hermes -p $HermesProfile mcp test bentcrypto"
+      Write-Host "Then: hermes -p $HermesProfile mcp configure bentcrypto"
+    } else {
+      Write-Host "Recommended profile-safe registration command:" -ForegroundColor Cyan
+      Write-Host "hermes mcp add bentcrypto --command node --args `"$serverPath`""
+      Write-Host "Then: hermes mcp test bentcrypto"
+      Write-Host "Then: hermes mcp configure bentcrypto"
+    }
+  } else {
+    Write-Host "Hermes CLI was not found in PATH. Use the generated YAML snippet as a manual fallback after confirming the active profile config path." -ForegroundColor Yellow
+  }
+}
+
 Write-Host ""
-Write-Host "Payments remain disabled. Do not add wallet private keys until the free discovery and preview flow is verified." -ForegroundColor Yellow
+Write-Host "For the first Hermes test, expose only discover_bentcrypto and preview_token_risk_payment." -ForegroundColor Cyan
+Write-Host "Payments remain disabled by default. Do not add wallet private keys until the free discovery and preview flow is verified." -ForegroundColor Yellow
