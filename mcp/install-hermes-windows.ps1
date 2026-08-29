@@ -53,7 +53,9 @@ Write-Host ""
 $git = Require-Command "git"
 $node = Require-Command "node"
 $npm = Require-Command "npm"
-$hermes = (Get-Command "hermes" -ErrorAction SilentlyContinue)?.Source
+$hermesCmd = Get-Command "hermes" -ErrorAction SilentlyContinue
+$hermes = $null
+if ($hermesCmd) { $hermes = $hermesCmd.Source }
 
 $nodeVersionText = (& $node --version).Trim().TrimStart("v")
 $nodeMajor = [int]($nodeVersionText.Split(".")[0])
@@ -138,7 +140,11 @@ if ($RegisterWithHermes) {
 
   Write-Host ""
   Write-Host "PASS BentCrypto is registered with $(Get-HermesTargetDescription)." -ForegroundColor Green
-  Write-Host "Run 'hermes mcp configure bentcrypto' (add -p $HermesProfile before 'mcp' if targeting that named profile) and expose only:" -ForegroundColor Cyan
+  if ($HermesProfile) {
+    Write-Host "Run 'hermes -p $HermesProfile mcp configure bentcrypto' and expose only:" -ForegroundColor Cyan
+  } else {
+    Write-Host "Run 'hermes mcp configure bentcrypto' and expose only:" -ForegroundColor Cyan
+  }
   Write-Host "  discover_bentcrypto"
   Write-Host "  preview_token_risk_payment"
 } else {
