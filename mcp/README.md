@@ -49,9 +49,19 @@ Configure only the wallet(s) you intend the bridge to use. A dedicated low-balan
 
 ## Hermes Agent
 
-Hermes Agent can load the bridge directly from `~/.hermes/config.yaml`. Start with only the free discovery and payment-preview tools, then enable paid tools only after the connection is verified.
+Hermes supports named profiles, each with its own MCP configuration. Prefer Hermes' CLI so it writes the server into the active/profile-scoped config instead of manually assuming `~/.hermes/config.yaml` is the active file.
 
-See [`HERMES.md`](./HERMES.md) for the Windows-friendly configuration, safe test prompts, `/reload-mcp` workflow, and paid-tool opt-in.
+Example after installing from source:
+
+```powershell
+hermes mcp add bentcrypto --command node --args "C:\absolute\path\to\bentcrypto-examples\mcp\server.mjs"
+hermes mcp test bentcrypto
+hermes mcp configure bentcrypto
+```
+
+For the initial connection, expose only `discover_bentcrypto` and `preview_token_risk_payment`.
+
+See [`HERMES.md`](./HERMES.md) for the profile-safe Windows helper, named-profile commands, safe test prompts, `/reload-mcp` workflow, and paid-tool opt-in.
 
 ## npm / npx distribution
 
@@ -63,7 +73,25 @@ After publication, compatible MCP hosts can use:
 npx -y bentcrypto-mcp
 ```
 
-The repository CI performs syntax tests, unit tests, production-dependency audit, npm package-content dry-run, and official MCP Registry metadata validation before distribution changes are merged.
+The repository CI performs syntax tests, unit tests, production-dependency audit, npm package-content dry-run, official MCP Registry metadata validation, Windows stdio testing, and MCPB manifest validation before distribution changes are merged.
+
+## Smithery / MCPB distribution
+
+Smithery's current local-stdio publishing flow distributes a pre-built MCPB bundle rather than relying on the older repository `smithery.yaml` flow. This repository now includes a standards-based [`manifest.json`](./manifest.json) for the BentCrypto local MCP server.
+
+Validate it with:
+
+```bash
+npm run mcpb:validate
+```
+
+The current `smithery.yaml` is retained only as legacy metadata while the MCPB publication path is completed. Do not treat it as the authoritative Smithery release artifact.
+
+A production Smithery release will be marked complete only after a real `.mcpb` bundle is built, published through an authenticated BentCrypto/maintainer Smithery account, and the resulting registry page is verified.
+
+## Other MCP registries
+
+Glama and similar directories should be submitted only through their legitimate maintainer/ownership flows. A directory listing is not considered complete until the public listing can be independently verified.
 
 ## Payment network selection
 
