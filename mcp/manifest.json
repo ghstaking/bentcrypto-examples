@@ -1,0 +1,106 @@
+{
+  "manifest_version": "0.3",
+  "name": "bentcrypto-mcp",
+  "display_name": "BentCrypto x402 Token Intelligence",
+  "version": "0.1.0",
+  "description": "Local MCP bridge for BentCrypto token-risk and token-security x402 APIs.",
+  "long_description": "BentCrypto MCP gives MCP-compatible agents free discovery and x402 payment-preview tools plus opt-in paid Token Risk and Token Security calls. Token Risk supports Solana and Base. Token Security supports Solana only. Payments are disabled by default, payer signing stays local, and the bridge enforces a configurable per-call USDC cap before signing.",
+  "author": {
+    "name": "BentCrypto",
+    "url": "https://bentcrypto.com"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ghstaking/bentcrypto-examples.git"
+  },
+  "homepage": "https://bentcrypto.com/agent-api",
+  "documentation": "https://github.com/ghstaking/bentcrypto-examples/tree/main/mcp",
+  "support": "https://github.com/ghstaking/bentcrypto-examples/issues",
+  "server": {
+    "type": "node",
+    "entry_point": "server.mjs",
+    "mcp_config": {
+      "command": "node",
+      "args": ["${__dirname}/server.mjs"],
+      "env": {
+        "BENTCRYPTO_ALLOW_PAYMENTS": "${user_config.allow_payments}",
+        "BENTCRYPTO_MAX_USDC_PER_CALL": "${user_config.max_usdc_per_call}",
+        "BENTCRYPTO_PREFERRED_PAYMENT_NETWORK": "${user_config.preferred_payment_network}",
+        "EVM_PRIVATE_KEY": "${user_config.evm_private_key}",
+        "SVM_PRIVATE_KEY": "${user_config.svm_private_key}"
+      }
+    }
+  },
+  "tools": [
+    {
+      "name": "discover_bentcrypto",
+      "description": "Discover live BentCrypto products, supported chains, pricing, and API metadata without making a payment."
+    },
+    {
+      "name": "preview_token_risk_payment",
+      "description": "Inspect the live x402 token-risk payment requirement without signing or paying."
+    },
+    {
+      "name": "token_risk",
+      "description": "Run the paid BentCrypto Token Risk analysis on Solana or Base after explicit local payment opt-in."
+    },
+    {
+      "name": "token_security",
+      "description": "Run the paid BentCrypto Token Security analysis on Solana after explicit local payment opt-in."
+    }
+  ],
+  "tools_generated": false,
+  "keywords": [
+    "mcp",
+    "x402",
+    "token-risk",
+    "token-security",
+    "solana",
+    "base",
+    "crypto",
+    "ai-agents"
+  ],
+  "license": "MIT",
+  "compatibility": {
+    "platforms": ["darwin", "win32", "linux"],
+    "runtimes": {
+      "node": ">=20"
+    }
+  },
+  "user_config": {
+    "allow_payments": {
+      "type": "string",
+      "title": "Enable x402 payments",
+      "description": "Leave NO for discovery-only use. Set to YES only after reviewing the local wallet and $0.01 default per-call spend policy.",
+      "default": "NO",
+      "required": false
+    },
+    "max_usdc_per_call": {
+      "type": "string",
+      "title": "Maximum USDC per call",
+      "description": "Local maximum payment amount allowed for one MCP call.",
+      "default": "0.01",
+      "required": false
+    },
+    "preferred_payment_network": {
+      "type": "string",
+      "title": "Preferred payment network",
+      "description": "Optional preferred x402 network, for example eip155:8453 for Base. Leave blank to let the bridge choose a supported requirement.",
+      "required": false
+    },
+    "evm_private_key": {
+      "type": "string",
+      "title": "Base payment wallet private key",
+      "description": "Optional dedicated low-balance Base wallet key. Never required for discovery-only use.",
+      "sensitive": true,
+      "required": false
+    },
+    "svm_private_key": {
+      "type": "string",
+      "title": "Solana payment wallet private key",
+      "description": "Optional dedicated low-balance Solana wallet key. Never required for discovery-only use.",
+      "sensitive": true,
+      "required": false
+    }
+  }
+}
