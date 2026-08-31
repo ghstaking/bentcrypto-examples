@@ -1,2 +1,3 @@
-x402[httpx,svm]
+x402[httpx,svm,evm]
 httpx
+eth-account

@@ -8,11 +8,19 @@
       "asset": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
       "payTo": "5bZdrGYAbHdbVCqw7RVUpxma22kJehaQCHhp4nHuHCyy",
       "maxTimeoutSeconds": 300
+    },
+    {
+      "scheme": "exact",
+      "network": "eip155:8453",
+      "amount": "10000",
+      "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+      "payTo": "0x2E0f8B55F4a224a6017626BE5D862cb8eCb74f3b",
+      "maxTimeoutSeconds": 300
     }
   ],
   "resource": {
-    "url": "https://api.bentcrypto.com/v1/token/risk?chain=solana&address=So11111111111111111111111111111111111111112",
-    "description": "BentCrypto Solana Token Risk API",
+    "url": "https://api.bentcrypto.com/v1/token/risk?chain=base&address=0x4200000000000000000000000000000000000006",
+    "description": "BentCrypto Token Risk API - Solana and Base analysis; payment network selected independently from offered x402 requirements",
     "mimeType": "application/json"
   }
 }
