@@ -24,10 +24,15 @@ jobs:
           node-version: '22'
       - run: npm install --ignore-scripts
       - run: node --check javascript/token-risk-base.js
+      - run: node --check examples/mpp-base-paid.mjs
       - name: Verify x402 EVM client exports
         run: node --input-type=module -e "import('@x402/core/client').then(async c => { const e = await import('@x402/evm/exact/client'); const v = await import('viem/accounts'); if (!c.x402Client || !c.x402HTTPClient || !e.ExactEvmScheme || !v.privateKeyToAccount) process.exit(1); console.log('PASS Base JavaScript buyer dependencies import'); })"
-      - name: Validate current Base challenge without paying
+      - name: Verify MPP Base buyer imports
+        run: node --input-type=module -e "Promise.all([import('mppx/client'), import('mppx/evm/client'), import('mppx/evm'), import('viem/accounts')]).then(([c,e,a,v]) => { if (!c.Mppx || !e.charge || !a.assets?.base?.USDC || !v.privateKeyToAccount) process.exit(1); console.log('PASS Base MPP buyer dependencies import'); })"
+      - name: Validate current Base x402 challenge without paying
         run: npm run token-risk:base:challenge
+      - name: Validate current Base MPP challenge without paying
+        run: node examples/mpp-base-challenge.mjs
 
   python-base-buyer:
     runs-on: ubuntu-latest
