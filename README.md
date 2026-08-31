@@ -1,35 +1,41 @@
 # BentCrypto Examples
 
-**x402 token intelligence for AI agents — Token Risk on Solana + Base and Token Security on Solana. $0.01 USDC per authorized request.**
+**Machine-payable token intelligence for AI agents — x402 on Solana + Base, MPP on Base, and an MCP facade. Token Risk is $0.01 USDC per authorized request.**
 
-BentCrypto exposes machine-readable token intelligence over HTTP with no account, subscription, or traditional API key required for the paid call itself. A client requests a valid resource, receives an HTTP `402 Payment Required` challenge, authorizes the x402 payment locally, and retries the same request with payment proof.
+BentCrypto exposes machine-readable token intelligence over HTTP with no account, subscription, or traditional API key required for the paid call itself. A client requests a valid resource, receives an HTTP `402 Payment Required` challenge, authorizes the supported payment locally, and retries the same request with payment proof.
 
 ## Live APIs
 
-| API | Endpoint | Analysis chains | x402 payment networks | Price | Status |
+| API | Endpoint | Analysis chains | Payment path | Price | Status |
 | --- | --- | --- | --- | ---: | --- |
-| Token Risk | `GET https://api.bentcrypto.com/v1/token/risk` | Solana + Base | Solana mainnet + Base mainnet | $0.01 USDC | Limited beta |
-| Token Security | `GET https://api.bentcrypto.com/v1/token/security` | Solana only | Solana mainnet | $0.01 USDC | Limited beta |
+| Token Risk | `GET https://api.bentcrypto.com/v1/token/risk` | Solana + Base | x402 on Solana/Base | $0.01 USDC | Limited beta |
+| Token Risk MPP | `GET https://api.bentcrypto.com/mpp/v1/token/risk` | Base | MPP EVM charge on Base | $0.01 USDC | Canary/beta |
+| Token Security | `GET https://api.bentcrypto.com/v1/token/security` | Solana only | x402 on Solana | $0.01 USDC | Limited beta |
+| Token Risk preflight | `GET https://api.bentcrypto.com/v1/token/risk/preflight` | Solana + Base | Free, no payment | $0.00 | Capability check |
+| MCP | `POST https://api.bentcrypto.com/mcp` | Solana + Base tools | x402 boundary | Per tool | Production facade |
 
 ### Analysis chain and payment network are independent
 
-`chain=solana` or `chain=base` selects the blockchain BentCrypto analyzes. It does **not** force the payment to use the same network. For Token Risk, the runtime x402 challenge can offer both Solana and Base USDC payment options. A buyer should select any compatible requirement it supports and that fits its local spend policy.
+`chain=solana` or `chain=base` selects the blockchain BentCrypto analyzes. It does **not** force the x402 payment to use the same network. For Token Risk, the runtime x402 challenge can offer both Solana and Base USDC payment options. A buyer should select any compatible requirement it supports and that fits its local spend policy.
 
-Example: an agent can request `chain=base` analysis and pay the $0.01 fee using either the offered Base USDC option or the offered Solana USDC option.
+Example: an agent can request `chain=base` analysis and pay the $0.01 fee using either the offered Base USDC option or the offered Solana USDC option. The dedicated MPP Token Risk canary analyzes Base and uses MPP EVM charge on Base USDC.
 
-The runtime `Payment-Required` challenge is always authoritative for the exact network, asset, amount, receiver, and timeout.
+Runtime payment challenges are always authoritative for the exact network, asset, amount, receiver, and timeout.
 
-## Quick start: inspect a challenge without paying
+## Quick start: validate capability without paying
 
-Solana analysis:
+Free Token Risk preflight:
+
+```bash
+curl "https://api.bentcrypto.com/v1/token/risk/preflight?chain=base&address=0x4200000000000000000000000000000000000006"
+```
+
+The preflight validates chain/address input and reports current price, available payment protocols/networks, discovery links, and expected output fields. It does **not** invoke the private risk engine and does not return a risk score.
+
+Inspect an x402 challenge without paying:
 
 ```bash
 curl -i "https://api.bentcrypto.com/v1/token/risk?chain=solana&address=So11111111111111111111111111111111111111112"
-```
-
-Base analysis:
-
-```bash
 curl -i "https://api.bentcrypto.com/v1/token/risk?chain=base&address=0x4200000000000000000000000000000000000006"
 ```
 
@@ -89,16 +95,7 @@ export CONFIRM_X402_PAYMENT=YES
 npm run token-risk:base
 ```
 
-The Base helper validates all of these before signing:
-
-- x402 v2
-- scheme `exact`
-- network `eip155:8453`
-- native Base USDC `0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913`
-- amount `10000` base units = $0.01 USDC
-- BentCrypto's expected Base receiving address
-
-It then uses the current x402 v2 EVM client and verifies the settlement response after HTTP 200.
+The Base helper validates x402 v2, scheme `exact`, Base `eip155:8453`, native Base USDC, the $0.01 amount, and BentCrypto's expected receiver before signing. It then verifies the settlement response after HTTP 200.
 
 To analyze a different Base token, set `BASE_TOKEN_ADDRESS` before running the example.
 
@@ -141,6 +138,30 @@ python .\python\token_risk_base.py
 
 The Python Base example uses `x402HttpxClient`, `EthAccountSigner`, and `register_exact_evm_client`, performs the same guarded unpaid preflight, and verifies the returned payment settlement metadata.
 
+## JavaScript: paid Base Token Risk over MPP
+
+The MPP example is disabled by default. It is hard-limited to the canonical BentCrypto MPP route, Base chain ID 8453, native Base USDC, a maximum amount of **$0.01**, and one payment retry.
+
+PowerShell:
+
+```powershell
+$env:EVM_PRIVATE_KEY = "0x<64-hex-private-key>"
+$env:CONFIRM_MPP_PAYMENT = "YES"
+npm run mpp-risk:base
+```
+
+macOS/Linux:
+
+```bash
+export EVM_PRIVATE_KEY='0x<64-hex-private-key>'
+export CONFIRM_MPP_PAYMENT=YES
+npm run mpp-risk:base
+```
+
+The script first fetches an unsigned `WWW-Authenticate: Payment` challenge and verifies `method=evm` and `intent=charge`. `mppx` then enforces Base, Base USDC, `maxAmount: "0.01"`, and `maxPaymentRetries: 1` while signing locally. The paid response must contain `Payment-Receipt` and identify the MPP charge metadata.
+
+To analyze another Base token, set `BENTCRYPTO_MPP_URL` to the same canonical route with a different valid `address` query parameter. The example refuses any non-BentCrypto origin or unexpected path.
+
 ## Token Security
 
 Token Security is Solana-only:
@@ -169,35 +190,23 @@ It exposes paid `token_risk` for Solana/Base and paid `token_security` for Solan
 
 The [`mcp/`](./mcp) folder also contains an optional local stdio bridge for MCP-capable clients that want wallet signing and spend-policy enforcement in a local process. See [`mcp/README.md`](./mcp/README.md).
 
-## MPP canary
-
-BentCrypto also exposes a Base-USDC MPP Token Risk canary at:
-
-```text
-GET https://api.bentcrypto.com/mpp/v1/token/risk
-```
-
-MPP is an alternate canary/beta payment path, not a replacement for x402. The runtime `WWW-Authenticate: Payment` challenge is authoritative.
-
 ## Response and challenge examples
 
-Sanitized examples are under [`examples/`](./examples):
-
-- [`token-risk-response.json`](./examples/token-risk-response.json)
-- [`token-security-response.json`](./examples/token-security-response.json)
-- [`payment-required.json`](./examples/payment-required.json) — current dual-network Token Risk challenge shape
+Sanitized examples are under [`examples/`](./examples), including the Token Risk/Token Security response shapes, x402 payment-required shape, MCP tool listing example, and the guarded MPP client.
 
 ## Machine-readable discovery
 
-- x402: https://api.bentcrypto.com/.well-known/x402
 - OpenAPI: https://api.bentcrypto.com/openapi.json
+- Free Token Risk preflight: https://api.bentcrypto.com/v1/token/risk/preflight
+- x402: https://api.bentcrypto.com/.well-known/x402
 - x402 catalog: https://api.bentcrypto.com/x402.json
 - Agent manifest: https://api.bentcrypto.com/agents.json
 - LLM summary: https://api.bentcrypto.com/llms.txt
 - Agent skill: https://api.bentcrypto.com/skill.md
 - Pricing: https://api.bentcrypto.com/pricing
+- MCP: `POST https://api.bentcrypto.com/mcp`
 
-The well-known document explicitly identifies x402 v2, current analysis chains, and current payment networks. Runtime 402 requirements remain authoritative.
+The well-known document explicitly identifies x402 v2, current analysis chains, and current payment networks. Canonical OpenAPI exposes constructible request examples. Runtime 402 requirements remain authoritative.
 
 ## Documentation
 
@@ -211,7 +220,7 @@ The well-known document explicitly identifies x402 v2, current analysis chains, 
 
 ## Security
 
-BentCrypto never needs your private key or seed phrase. x402 payment signing happens inside the buyer's own client. Use a dedicated low-balance payment wallet, apply a local per-call spend policy, and never commit wallet material to source control.
+BentCrypto never needs your private key or seed phrase. x402 and MPP payment signing happens inside the buyer's own client. Use a dedicated low-balance payment wallet, apply a local per-call spend policy, and never commit wallet material to source control.
 
 After testing, clear payment variables from the shell.
 
@@ -221,7 +230,9 @@ PowerShell:
 Remove-Item Env:SVM_PRIVATE_KEY -ErrorAction SilentlyContinue
 Remove-Item Env:EVM_PRIVATE_KEY -ErrorAction SilentlyContinue
 Remove-Item Env:CONFIRM_X402_PAYMENT -ErrorAction SilentlyContinue
+Remove-Item Env:CONFIRM_MPP_PAYMENT -ErrorAction SilentlyContinue
 Remove-Item Env:BENTCRYPTO_CHALLENGE_ONLY -ErrorAction SilentlyContinue
+Remove-Item Env:BENTCRYPTO_MPP_URL -ErrorAction SilentlyContinue
 ```
 
 ## Beta notice

@@ -1,6 +1,6 @@
 {
   "name": "bentcrypto-examples",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "private": true,
   "type": "module",
   "engines": {
@@ -11,7 +11,8 @@
     "token-risk:base": "node javascript/token-risk-base.js",
     "token-risk:base:challenge": "node javascript/token-risk-base.js --challenge-only",
     "token-security": "node javascript/token-security.js",
-    "challenge": "node javascript/x402-paid-request.js --challenge-only"
+    "challenge": "node javascript/x402-paid-request.js --challenge-only",
+    "mpp-risk:base": "node examples/mpp-base-paid.mjs"
   },
   "dependencies": {
     "@scure/base": "^2.0.0",
@@ -20,6 +21,7 @@
     "@x402/evm": "2.19.0",
     "@x402/fetch": "2.19.0",
     "@x402/svm": "2.19.0",
+    "mppx": "0.8.19",
     "viem": "2.56.0"
   }
 }
