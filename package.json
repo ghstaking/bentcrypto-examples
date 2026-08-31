@@ -1,6 +1,6 @@
 {
   "name": "bentcrypto-examples",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "private": true,
   "type": "module",
   "engines": {
@@ -8,6 +8,8 @@
   },
   "scripts": {
     "token-risk": "node javascript/token-risk.js",
+    "token-risk:base": "node javascript/token-risk-base.js",
+    "token-risk:base:challenge": "node javascript/token-risk-base.js --challenge-only",
     "token-security": "node javascript/token-security.js",
     "challenge": "node javascript/x402-paid-request.js --challenge-only"
   },
@@ -15,7 +17,9 @@
     "@scure/base": "^2.0.0",
     "@solana/kit": "^5.2.0",
     "@x402/core": "2.19.0",
+    "@x402/evm": "2.19.0",
     "@x402/fetch": "2.19.0",
-    "@x402/svm": "2.19.0"
+    "@x402/svm": "2.19.0",
+    "viem": "2.56.0"
   }
 }
