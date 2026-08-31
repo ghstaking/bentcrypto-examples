@@ -1,0 +1,75 @@
+name: Buyer examples
+
+on:
+  pull_request:
+    paths:
+      - "javascript/**"
+      - "python/**"
+      - "docs/**"
+      - "examples/**"
+      - "package.json"
+      - "requirements.txt"
+      - ".github/workflows/buyer-examples.yml"
+  push:
+    branches: [main]
+    paths:
+      - "javascript/**"
+      - "python/**"
+      - "docs/**"
+      - "examples/**"
+      - "package.json"
+      - "requirements.txt"
+      - ".github/workflows/buyer-examples.yml"
+
+jobs:
+  node-base-buyer:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm install --ignore-scripts
+      - run: node --check javascript/token-risk-base.js
+      - name: Verify x402 EVM client exports
+        run: |
+          node --input-type=module - <<'NODE'
+          import { x402Client, x402HTTPClient } from '@x402/core/client';
+          import { ExactEvmScheme } from '@x402/evm/exact/client';
+          import { privateKeyToAccount } from 'viem/accounts';
+          if (!x402Client || !x402HTTPClient || !ExactEvmScheme || !privateKeyToAccount) process.exit(1);
+          console.log('PASS: Base JavaScript buyer dependencies import');
+          NODE
+      - name: Validate current Base challenge without paying
+        run: npm run token-risk:base:challenge
+
+  python-base-buyer:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -m pip install --upgrade pip
+      - run: pip install -r requirements.txt
+      - run: python -m py_compile python/token_risk_base.py
+      - name: Verify x402 EVM imports
+        run: |
+          python - <<'PY'
+          from eth_account import Account
+          from x402 import x402Client
+          from x402.http.clients import x402HttpxClient
+          from x402.mechanisms.evm import EthAccountSigner
+          from x402.mechanisms.evm.exact.register import register_exact_evm_client
+          print('PASS: Base Python buyer dependencies import')
+          PY
+      - name: Validate current Base challenge without paying
+        env:
+          BENTCRYPTO_CHALLENGE_ONLY: "YES"
+        run: python python/token_risk_base.py
+
+  docs-samples:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: node -e "const x=require('./examples/payment-required.json'); if(x.x402Version!==2 || !x.accepts.some(p=>p.network==='eip155:8453') || !x.accepts.some(p=>String(p.network).startsWith('solana:'))) process.exit(1); console.log('PASS: dual-network challenge sample')"
